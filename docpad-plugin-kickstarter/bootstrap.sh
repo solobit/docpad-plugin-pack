@@ -27,9 +27,9 @@ E_MISS_APP=67
 ks_init() {
 
   # Gentle and graceful project initialization
-  npm init &&\ $(: If package.json already exists, will non-harmful requery)
-    \ $(: Immediately chain conditional execution of bare package installations)
-    npm i cson json shelljs --save-dev $(: Persist changes to package.json)
+  npm init &&\ : If package.json already exists, will non-harmful requery
+    \ : Immediately chain conditional execution of bare package installations
+    npm i cson json shelljs --save-dev : Persist changes to package.json
 }
 
 ks_welcome() {
@@ -153,6 +153,9 @@ ks_main() {
     exit 65;
   }
 
+  
+  # All is good!
+  ks_welcome
 }
 
 ks_meta() {
@@ -168,10 +171,10 @@ ks_meta() {
 EOF
 }
 
+# TODO Find a clean way to ensure synced package.json and package.cson files
 ks_annotate() { echo; }
 
 # Chainstrap
-ks_welcome
 ks_main
 
 #vim: ft=sh:fdm=manual:fmr={{{,}}}:et:nospell:sw=2:ts=2:sts=2

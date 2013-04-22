@@ -1,0 +1,29 @@
+{
+  "name": "docpad-plugin-forms",
+  "version": "0.0.1",
+  "description": "ARIA and localized form generation plugin for Docpad",
+  "main": "forms.plugin.coffee",
+  "scripts": {
+    "test": "form.test.coffee"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/solobit/docpad-plugin-pack"
+  },
+  "keywords": [
+    "docpad",
+    "plugin",
+    "forms",
+    "generate",
+    "html",
+    "aria",
+    "i18n"
+  ],
+  "author": "Rob Jentzema <solobit.net>",
+  "license": "BSD",
+  "devDependencies": {
+    "json": "0.0.13",
+    "cson": "~1.4.1",
+    "shelljs": "~0.1.3"
+  }
+}

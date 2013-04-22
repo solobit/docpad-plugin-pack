@@ -1,0 +1,9 @@
+{
+    "name": "docpad-plugin-munge",
+    "version": "0.0.1",
+    "private": true,
+    "keywords": [
+        "docpad-plugin"
+    ],
+    "main": "./munge.plugin.coffee"
+}

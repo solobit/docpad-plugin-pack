@@ -10,12 +10,20 @@
 # Much of shell operations will, later, be covered by 'shelljs' and 'cson' does
 # some translations from and to native package formats (JSON basically).
 
-# Arrays / lists
-declare -a REQ_CMDS=('json' 'cson2json' 'json2cson')
-declare -a REQ_APPS=('cson' 'json' 'shelljs')
+# Do not allow use of uninitialised variables (error)
+set -o nounset
+
+# Safe exit on errors like the one above
+set -o errexit
+
+# ×º°”˜`”°º×`  ≡≡ Arrays ≡≡ ×º°”˜`”°º×`
+declare -a REQ_CMDS=(json cson2json json2cson)
+declare -a REQ_APPS=(cson json shelljs)
+
+# ×º°”˜`”°º×` ✖ Exit codes ✖ ×º°”˜`”°º×`
 
 # Failed options?
-E_FAIL_OPT=65
+#E_FAIL_OPT=65
 
 # Missing command from one of the apps below.
 E_MISS_CMD=66
@@ -131,6 +139,9 @@ EOF
 
 }
 
+#
+# Main routine
+#
 ks_main() {
 
   # Test for local Node.js modules installation under regular (convention) path.
@@ -140,19 +151,27 @@ ks_main() {
   # Add a blanco (templated TODO) readme file to stop npm from whining about it.
   [[ ! -f README.md ]] && ks_readme
 
-  err=0
+  err=0 # This is not a function or a subshell so we can access this variable
 
   # Test every dependency
-  for cmd in "${REQ_CMDS[@]}"; do
-    $(: Most reliable test method we have available, pipe to sink)
+  for cmd in "${REQ_CMDS[@]}"
+  do
+     : Most reliable method we have available, pipe to sink
     hash $cmd 2>/dev/null || {
-      echo >&2 "$(tput setaf 4)ERROR: $(tput sgr0)Command `cmd` not found."\
-      "Please ensure the application to which '`cmd`' belongs is properly installed."\
+
+      printf "\n%s\n%s\n%s\n%s\n%s\n" >&2 "$(tput setaf 1)ERROR: Command not found"\
+      "$(tput sgr0)Command $cmd could not be found, is it installed? " \
+      "Please ensure the application to which '$cmd' belongs is properly installed. " \
+      "Also you may want to check your PATH variable to see if $(tput setaf 3)node_modules/.bin$(tput sgr0) is there." \
       "Exiting now...";
+
       printf "\n%s %s\n" "[$(tput setaf 1)FAIL$(tput sgr0)] Some commands required are not found.";
       err=1;
     }
-  done; [[ $err != 0 ]] && ks_msg_path && exit 66
+  done;
+  [[ $err != 0 ]] && ks_msg_path && exit 66
+
+  # Still here? Good!
   printf "\n%s %s" "[$(tput setaf 2)GOOD$(tput sgr0)] All commands required are found."
 
   # FIXME refactor
@@ -162,7 +181,6 @@ ks_main() {
     echo
     exit 65;
   }
-
 
   # All is good!
   ks_welcome

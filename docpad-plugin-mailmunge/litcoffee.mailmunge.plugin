@@ -1,0 +1,546 @@
+
+# Docpad Plugin MailMunge
+
+## Introduction
+
+Address munging is the practice of disguising, or munging, an e-mail
+address to prevent it being automatically collected and used as a target
+for people and organizations who send unsolicited bulk e-mail. Address
+munging is intended to disguise an e-mail address in a way that prevents
+computer software seeing the real address, or even any address at all,
+but still allows a human reader to reconstruct the original and contact
+the author: an email address such as, "no-one@example.com", becomes "no-
+one at example dot com", for instance. Any e-mail address posted in
+public is likely to be automatically collected by computer software used
+by bulk emailers — a process known as e-mail address harvesting — and
+addresses posted on webpages, Usenet or chat rooms are particularly
+vulnerable to this.[1] Private e-mail sent between individuals is highly
+unlikely to be collected, but e-mail sent to a mailing list that is
+archived and made available via the web or passed onto a Usenet news
+server and made public, may eventually be scanned and collected.
+
+## Plugin module
+
+This file is a file designated to be used in conjunction with Node.js.
+Node.js files are modules and modules are files. A file, or module, can
+share some or all of its properties (variables and functions or blocks
+of imperative code, although in CoffeeScript, everything is an
+expression). The method to share these properties of a module/file is by
+setting the global `module.exports` method. This has allowed docpad to
+use the following plugin top-namespace or encapsulating, definition to
+be used for third party plugins:
+
+    module.exports = (BasePlugin) ->
+
+Note that the arrow `->` means this is a function declaration of the
+type `var x = function() { }` in JavaScript. Hence we are inside the
+brackets and in CoffeeScript we need to indent this local scope.
+
+Now that we have our public module scope defined as public, the outer
+docpad instance using this file can access our code and, vise-versa, we
+can hook on to the docpad (events) data.
+
+Time to define our class `MailMunge` as a derived class (child or
+prototypically inherited (derived) class).
+
+        class MailMunge extends BasePlugin
+
+Having this all done, we can move on to define some user-settings for our
+plugin, as these play a vital role in the functionality and flexibility
+of this plugin.
+
+## Configuration details
+
+Docpad provides us with a nice and easy way to define some configuration
+details and user-settings that we might want to use. Our original solution
+used a web form but that won't be needed here. So this is the result of
+translating these options to docpad, away from the browser.
+
+            name: 'mailmunge'
+
+Our top hash object key is named `name` and it serves to hold the name
+of this plugin. Note that the name must match that of the file name
+minus the `plugin.coffee` parts. This is per docpad convention, if not
+done this, or so we are warned, may result in malfunctioning of the
+plugin/docpad and we will not get our desired result.
+
+The second key is called `config` and we will use this to nest any other
+settings we like to store here and make available to our users.
+
+            config:
+
+This option will translate characters to their encoded counterparts.
+
+                encode:     true
+
+Wether or not we insert random, invisible, spans into our address.
+
+                spans:      true
+
+Set if we want to generate any `mailto:` links from the email addresses.
+
+                mailto:     true
+
+And finally wether or not we should generate a javascript function to
+be included which will generate the email address for us, when someone
+opens the page.
+
+                javascript: true
+
+## Event hooks
+
+Earlier we decided that for now, it seems best to render the emails
+after docpad processed the source documents to become HTML/CSS/JS. To be
+able and do this means we need to hook to an event. This one seems to be
+the most appropriate of this type of use.
+
+            renderAfter: (opts,next) ->
+
+While refactoring the pre-existing solution, I mentioned that docpad has
+a well established pattern for sharing information. Below we'll just do
+that. First, make sure we get the running docpad instance holding all
+(meta)data of our site(s).
+
+                docpad = @docpad
+                opts = @config
+
+
+
+                if 'static' in docpad.getEnvironments()
+                    docpad.log 'debug', 'Writing absolute urls'
+                    href = 'href="' + @config.url
+                    src = 'src="' + @config.url
+                    database = docpad.getCollection('html')
+                    database.forEach (document) ->
+                        content = document.get('contentRendered')
+                        if /href="\//.test(content)
+                            content = content.replace(/href="\//g, href)
+                         if /src="\//.test(content)
+                            content = content.replace(/src="\//g, src)
+                    document.set('contentRendered',content)
+                    next()?
+                else
+                    next()?
+
+                # Chain
+                @
+
+
+
+# Generates a random number between 1 and `max`
+
+# Encodes all character in an address into HTML entities
+
+# Inserts random, invisible spans into the email text
+
+# Don't add spans into the cleanEmail, or mailto will barf.
+
+# Includes a mailto: link.
+
+# Wrap `text` in a javascript snippet that will print it out to the
+# document.
+
+# Be sure to escape quotation marks
+
+
+## Helper functions
+
+Here we define a few of our helper functions which make our life
+somewhat easier, in any way you can imagine. Often I find myself too
+lazy to write a full `console.log` for example so I defined:
+
+    log = (args...) -> console.log args...
+
+Obviously, it is prefered to actually hook into the Docpad notification
+system (it will allow for better integration/tracking of plugins and
+bugs, errors or malfunctioning and usage metrics) but since I don't know
+how yet, this'll do.
+
+## Rationale
+
+This plugin is made by taking a pre-existing solution found on Github
+(see credits) called [obfuscate-please][obfpls]. It offers those things,
+mainly references to the JavaScript methods and objects used, that I
+didn't know of, and after reading a bit on the available solutions to
+the problem of mail harvesting, I found this to be sufficient for
+modification and usage in Docpad.
+
+First of all, we need something to work with. An e-mail address that we
+can use. We should gather these from the `document` models found inside
+Docpad, [QueryEngine][qe] and [Backbone.js][bb]. They will provide us,
+after matching against a regular expression, the email addresses we used
+in, say, our blog posts or articles that we publish with Docpad.
+
+So we should determine when exactly we want this email munging to take
+place and how. I like to assume the users are stupid, like me, and won't
+think about this too much so the functionality should resemble this in
+such a way that we automagically render the emails. Another option would
+have been to have email addresses wrappen in a function, like
+`munge('jansen@net.nl')` but this would need the user to remember to
+wrap them, and secondly, Markdown for example will be ugly hacks to get
+this done.
+
+This pops the question though: 'do we want to render the email in source
+or on the final HTML'? The last seems like the best approach now,
+because many languages (docpad being language agnostic) use the `@` sign
+for variables and other programming constructs so it might trigger a lot
+of initial matches and possible false negatives when we use regular
+expressions, which doesn't seem like the greatest option to begin with.
+But as I don't know of any other way, lets just stick with it and I'll
+check later how balupton solves these problems.
+
+So with that in mind, the process will roughly look like
+this:
+
+> Let there be a string of text characters
+>> +inside documents collection/model
+>> +that match `something@thisone.com` regex
+> Replace each character with the encoded ones
+> Place invisible spans in between randomly
+>  +but not in HTTP or mailto
+> Randomize/entropy further by using RT bindings
+> etc...
+
+Now let us begin and see where we end up from there.
+
+## Core functionality
+
+First we define a few member variables we need to store data in. One is
+important to us, the `obfuscator` variable and in it we place a hash
+object/map with the key `random number` which holds a random generated
+number provided by the return value (closure) of the function. The
+random number is bound by a maximum (roof) value.
+
+    obfuscator =
+
+        randomNumber: (max) ->
+            Math.floor (Math.random() * max) + 1
+
+Next we define another key named `encode` which also holds as a value
+a function (more precisely, its return value) and that takes the email
+object, defined later, as a parameterized input value.
+
+        encode: (emailObj) ->
+
+So we take a new variable and assign it the value of an empty string
+`""`.
+
+            newText = ""
+
+Furthermore, we define a local variable named `text` and set its
+value to that stored in the hash map `emailObj` (our input) to that of
+a key/value pair stored under the key `cleanEmail`.
+
+            text = emailObj.cleanEmail
+
+Lastly we create a variable named `i` which is set to the numeral value
+`0` (zero).
+
+            i = 0
+
+What follows is a `while` loop that forms the encoded string for us. Now
+for each character in `text` variable (from `emailObj.cleanEmail`
+earlier), we take the `newText` variable - empty at 0 but populated as
+we loop - and append the `&#` characters to its value in any subsequent calls
+throughout the loop, untill all characters are processed.
+
+            while i < text.length
+
+              newText += "&#" + text.charCodeAt(i) + ";"
+
+Finally increment the counter `i` variable until all characters are
+done, this is what keeps track of it.
+
+              i++
+
+Note: this was generated code from JS2Coffee. As I refactor this may
+change.
+
+Back outside our `while` loop, we take the `emailObj` variable, which we
+received from the outside (outside our functionscope) which was passed
+on as an argument provided by the function call, and set its value to
+the encoded string `newText` which we populated in our loop.
+
+            emailObj.text = newText
+
+And also the key `cleanEmail` is set to the same value.
+
+            emailObj.cleanEmail = newText
+
+We use the function `obfuscate` to check if we have a input string to
+work with, so we ask of this to be provided by means of a function
+parameter value that is being passed along. We set a default value so
+if the function gets called without any arguments, we will end up with
+an empty string instead of null or nothing.
+
+### Span insertion
+
+Part of our strategy to obfuscate email addressess from automated
+harvesting off our sites, is to insert `span` HTML elements/tags which,
+when set to CSS rule `display: none;` will render invisible for the
+naked eye. Perhaps I hadn't explained this in a explicit fashion but the
+logic behind it quite nice: browsers can read our encoded string, to us
+it is unreadable, but the browser (client) will interpret them just
+fine. And will display them as a normal emailaddress in the viewable
+portion of our site. So the browser understands our string, our users
+can see the email, they can copy/paste it but, and here comes the nice
+part, most mail harvesting bots can't.
+
+The logic is also very sound: these harvesters use headless web browers
+and read through source code. Normally, with HTML pages these contain
+also,.. valid emails! For a bot, reading source code has a great
+advantage. This way you can neglect those parts that are unintresting,
+such as JavaScript scripts or stylesheets, and only take those elements
+of importance like `<p>` tags or even just go straight for any found
+`<label for="email">` and `<input id="email" type="email" />` tags. So
+you see, scanning source will cost far less in terms of resources spent
+(CPU/Power/Memory) on finding addresses of people to harass.
+
+        spans: (emailObj) ->
+
+#### Member variables
+
+On the top level of our inner function scope, all we have is `this` and
+`emailObj` (plus the JS library of course) available to us. Since we
+will need to produce several loops that share code, we need to define
+some variables on the outside here so we may share the data.
+
+The `newText` is only declared as a variable but since we don't have a
+`var` keyword in Coffee, we set it to undefined.
+
+
+            newText = undefined
+
+Another variable named `text` is created and set to the `cleanEmail`
+key.
+
+            text = emailObj.cleanEmail
+
+Keep a counter to track how many `span` tags we inserted in between the
+characters.
+
+            spansInserted = 0
+
+
+            while spansInserted < 1 or spansInserted > 3
+
+On the inside, we repeat this pattern and add another counter `i` to
+help us perform the loop which would have been a traditional `for i`
+C-like loop.
+
+                newText = ""
+                spansInserted = 0
+                #i = 0 # not used anymore, removed for comprehension
+
+Again, take the whole string length as our maximum amount of loops to
+make. Only we refactor this into a list comprehension so we don't use this
+ineffective and ugly while loop:
+
+> while i < text.length
+
+and make it as comprehension of singly linked key/values.
+
+                for char, index in text
+
+since a string is also a list, or collection, of characters we can use
+this as an array and iterate over its members, `val` being the index.
+
+Take the empty newText variable and every iteration through the string,
+append the text character at that point.
+
+                    newText += char
+
+This defines some logic associated with the user-configuration. Certain
+features will be enabled or disabled and should (or shouldn't) take
+place. More about this later as it takes a lot to explain :P
+#### TODO
+
+                    if (not @config.encode isnt true or char is ";") and @randomNumber(10) is 1
+
+Update the counter to keep track how many spans were inserted by
+incrementing its value by `+1`.
+
+                        spansInserted++
+
+So we start out by writing the HTML `span` element opening tag and make
+sure we enforce a CSS style in that hierarchy by using the `style`
+attribute as it is the most close to the element, and thus will take
+precedence over any (external) styles(heets).
+
+                        newText += "<span style=\"display:none\">"
+
+Define a counter `r` to track progress.
+
+                        r = 0
+
+Start the `while` loop and make it generate random characters to
+populate the span tag. Since it will be invisible anyway, we can go wild
+and obfuscate a lot of the email address this way.
+
+                        while r < @randomNumber(3) + 3
+                            newText += String.fromCharCode(@randomNumber(26) + 96)
+                            r++
+
+Finally we close the `span` element using the tag `</span>`. Now we have
+a invisible (non-display) element that will further hide us.
+
+                        newText += "</span>"
+
+Don't add spans into the `cleanEmail`, or mailto will barf.
+
+            emailObj.text = newText
+
+Third, and forelast option we allow is to generate a `mailto:` prefix.
+It allows users clicking a link in a website to send an e-mail without
+first having to copy the destination e-mail address and open an e-mail
+client. Though its use is not strictly defined, URLs of this form are
+intended to be used to open the new message window of the user's email
+client when the URL is activated.
+
+Often better, to achieve the optimal protection against spam, is to have
+a contact form that uses some CGI or other dynamic element to send
+emails through that to the recipient. Then by adding a Captcha-like
+element, using images for verification of human activity, we can prevent
+abuse of that mail form. So you don't have to publish an email address
+on the web, and although already proven breakable by certain CV software
+(computer vision), Captcha will prevent ~99% of the possible abuse
+cases.
+
+Unfortunately, having a mail form is not always an option to people,
+especially if they rely on old, shared hosting solutions. Hey, while
+writing this I have done kickass dynamic shizznits but this customer I
+work on, it's all FTP still. And although email is still very much
+alive, it hasn't evolved much either. Now there is one other option, if
+you don't want to pay for a more powerful, paid solution. That is to use
+a free (Node) cloud PaaS provider such as [Heroku][hero] or
+[Nodejitsu][jitsu], and deploy a mail API app to it that does the
+mailing and validation for you. For my current customer, he already has
+a mailing solution much like [Mailchimp][ape] which I can use to receive
+and send email from.
+
+Often enough, this is the only dynamic requirement of otherwise fully
+static web sites, so it also doesn't make much sense to just have a full
+site on a dynamic PaaS platform only to be able and use a dynamic mail
+handling SMTP server/service/agent. So for many people, providing a
+`mailto:`, although not a 100% guarantee (people may not have a mail
+client or protocol handler setup to trigger a popup of say Gmail to
+compose a new message) but heck, you can't have everything.
+
+This means I could have written a few more of those, or do this instead.
+Which is more fun :)
+
+        mailto: (emailObj) ->
+
+            emailObj.text = "<a href=\"mailto:" +
+            emailObj.cleanEmail + "\">" +
+            emailObj.text + "</a>"
+
+
+Now I haven't explained that code, but it's fine. Next:
+
+
+        javascript: (emailObj) ->
+
+            text = emailObj.text
+            newText = "<script type=\"text/javascript\">document.write(\""
+
+            for k,v in text
+
+                if k isnt "\"" newText += k else newText += "\\\""
+
+                newText += "\"+\""  if @randomNumber(10) is 1
+
+            newText += "\");</script>"
+
+            emailObj.text = newText
+
+
+
+    obfuscate = (text = "") ->
+
+Deal with errors in the earliest possible moment in order to pin-point
+problems more precisely to their root cause or problem areas. Eventually
+this should all be wrapped in Node.js `domains` (or the likes of it)
+structures.
+
+        if text = ""
+            log 'DpPlug: MailMunge: obfuscate was called but no value
+            to obfuscate was provided. Exiting.'
+            throw new Error('No string to obfuscate')
+
+Create a variable of `emailObj` and make it a (hash) object of two (2)
+key value pairs, where the keys are named `text` and `cleanEmail` both
+of which store the same text, one will function as backup and the other
+will be rendered clean.
+
+        emailObj =
+            text: text
+            cleanEmail: text
+
+
+This is where `obfuscate-please` uses a web form to set options. Also it
+relies on jQuery to do these things in a browser. We won't need that,
+but we'd still like to set some configuration options. So this needs to
+be modified:
+
+
+
+Example: uses CSS selectors to loop through form elements for settings.
+
+```
+$("#options input:checked").each (index, el) ->
+    obfuscator[el.id] emailObj
+```
+
+Docpad plugins actually have a well established pattern for this, as
+well as getting the exposed outer docpad instance with all the candy
+inside. So we should move this up again, right after our `config`
+declaration, once we're ready.
+
+What happens here is that for every option being set to true (checked),
+we add a new random number
+
+
+
+$("#obfuscatedText").text emailObj.text
+
+checkWarnings = ->
+  if $("#javascript").attr("checked")
+    $("#info").slideUp()
+    $("#mailtoWarning").slideUp()
+    $("#javascriptWarning").slideDown()
+  else if $("#spans").attr("checked") and $("#mailto").attr("checked")
+    $("#info").slideUp()
+    $("#javascriptWarning").slideUp()
+    $("#mailtoWarning").slideDown()
+  else
+    $("#mailtoWarning").slideUp()
+    $("#javascriptWarning").slideUp()
+showExplanation = (explanation) ->
+  explanations = ["encode", "spans", "mailto", "javascript"]
+  for e of explanations
+    $("#" + explanations[e] + "Explanation").slideUp()  if explanations[e] isnt explanation
+  $("#" + explanation + "Explanation").slideToggle()
+
+
+
+
+
+
+
+$ ->
+
+  # Bind to a few actions so that the obfuscation happens
+  # in realtime
+  $("#toObfuscate").bind "keyup", ->
+    obfuscate()
+
+  $("input").change ->
+    checkWarnings()
+    obfuscate()
+
+
+  # Obfuscate our dummy text first, so the user has an idea
+  # what theirs will look like.
+  obfuscate()
+

@@ -1,0 +1,31 @@
+{
+  "name": "docpad-plugin-kickstarter",
+  "version": "0.0.1",
+  "description": "Kickstart projects into acceleration with this plugin.",
+  "main": "kickstarter.plugin.coffee",
+  "scripts": {
+    "test": "kickstarter.test.coffee"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/solobit/docpad-plugin-pack"
+  },
+  "keywords": [
+    "docpad",
+    "docpad-plugin",
+    "kickstarter",
+    "projects",
+    "plugin",
+    "extend",
+    "powertoy"
+  ],
+  "author": "Rob Jentzema <https://github.com/supersym>",
+  "license": "BSD",
+  "dependencies": {
+    "docpad-plugin-cson": "~2.0.1",
+    "cson": "~1.4.1",
+    "json": "0.0.13"
+  },
+  "devDependencies": {},
+  "readmeFilename": "README.md"
+}

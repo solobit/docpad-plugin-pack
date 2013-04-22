@@ -1,0 +1,9 @@
+{
+    "name": "docpad-plugin-absolutepath",
+    "version": "0.1.0",
+    "private": true,
+    "keywords": [
+        "docpad-plugin"
+    ],
+    "main": "./absolutepath.plugin.coffee"
+}

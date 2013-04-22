@@ -1,0 +1,9 @@
+{
+    "name": "docpad-plugin-mailmunge",
+    "version": "0.0.1",
+    "private": true,
+    "keywords": [
+        "docpad-plugin"
+    ],
+    "main": "./mailmunge.plugin.coffee"
+}

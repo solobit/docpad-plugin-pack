@@ -1,0 +1,22 @@
+{
+  "name": "docpad-plugin-repl",
+  "version": "0.0.1",
+  "description": "Read-Eval-Print Loop or just a terminal-centric powertool for diagnostics, experimentation and development",
+  "main": "main.coffee",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/solobit/docpad-plugin-pack"
+  },
+  "keywords": [
+    "docpad",
+    "docpad-plugin",
+    "extension",
+    "repl",
+    "powertoy"
+  ],
+  "author": "Rob Jentzema",
+  "license": "MIT"
+}

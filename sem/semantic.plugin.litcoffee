@@ -1,8 +1,4 @@
 
-# XML Namespaces (vocabularies) voor web 3.0 worden zo rechtstreeks
-# geinjecteerd in de body van documenten,
-# http://www.searchenginejournal.com/schema-101-how-to-implement-schema-org-markups-to-improve-seo-results/58210/
-
 # Docpad Plugin: Semantic Web
 
 ## Introduction

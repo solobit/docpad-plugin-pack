@@ -19,57 +19,41 @@ module.exports = (BasePlugin) ->
             # Simple package (todo extended)
             munge = require 'munge'
 
-            # Get HTML collection from QueryEngine
+            # Collection from QueryEngine < Backbone
             database = docpad.getCollection('html')
 
             # Loop documents in database
             database.forEach (document) ->
 
-                content = document.get('contentRendered')
+                content    = document.get('contentRendered')
 
-                # Mail addresses
-                # We are not selective, email can appear anywhere in the
-                # HTML such as anchors, paragraphs, propitem attribute,
-                # and so on. We want *everything*.
+                pattern    = /([\w.-]+)@([\w.-]+)\.([a-zA-Z.]{2,6})/gi
 
-                emailPattern = ///
-                       ([\w.-]+)         # john.smith-junior
-                       @                 # @
-                       ([\w.-]+)         # gmail-mail.com
-                       \.                # .
-                       ([a-zA-Z.]{2,6})  # com
-                    ///gi #end of line and ignore case
+                result     = pattern.exec(content)
 
-                results = content.match(emailPattern)
-                for result in results when results?
-                    docpad.log 'debug', " 📨 Munge ⓜ found e-mail address #{result}"
-                    mresult = munge(result)
-                    docpad.log 'debug', " ␦ Munge ⓜ email to obfuscated string output #{mresult}"
-                    content = content.replace(result, mresult)
-                    document.set('contentRendered',content)
-                    docpad.log 'debug', "Munge: email '#{result}' has content rendered"
+                # Set `$` to a cheerio instance which loads
+                # the current document content in memory
+                $ = require('cheerio').load(content)
 
-                urlPattern = ///
-                        (\<form)
-                        (.*)
-                        (action\=)
-                        (\"|\'|)
-                            (http[s]?:\/\/){0,1}
-                            (www\.){0,1}
-                            [a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,5}
-                            [\.]{0,1}
-                        (\"|\')
-                    ///gi
+                # Cheerio selectors
 
-                results = content.match(regexMail)
-                for result in results when results?
-                    docpad.log 'debug', " 🌍 Munge ⓜ found form action URL #{result}"
-                    mresult = munge(result)
-                    docpad.log 'debug', " ␦ Munge ⓜ form action to obfuscated string output  #{mresult}"
-                    content = content.replace(result, mresult)
-                    document.set('contentRendered',content)
-                    docpad.log 'debug', "Munge: form actio
-                     '#{result}' has content rendered"
+                # FORM element, set `action` attribute to munged string
+                $('form').attr(
+                    'action'
+                    , munge($('form').attr('action'))
+                    )
+
+                mailSyn = ".email, .mail, .emailaddress, .mailadres, .e-mail"
+                elGroup = "a, div, span, p, img"
+
+                if $(mailSyn).text() or $(elGroup).attr('itemprop')
+
+                    console.log $('.email,.mail,.emailadres').html()
+
+                # Persist changes by changing the document object and
+                # feeding it the cheerio modified html tree
+                document.set('contentRendered', $.html())
+
 
                 next()?
 

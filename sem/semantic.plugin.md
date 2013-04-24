@@ -1,15 +1,11 @@
 
-# XML Namespaces (vocabularies) voor web 3.0 worden zo rechtstreeks
-# geinjecteerd in de body van documenten,
-# http://www.searchenginejournal.com/schema-101-how-to-implement-schema-org-markups-to-improve-seo-results/58210/
-
 # Docpad Plugin: Semantic Web
 
 ## Introduction
 
 This plugin adds support for semantic web (3.0) vocabularies and/or
 ontologies to [Docpad][dp]. Due to the highly volatile nature of new
-technologies (and global coordination or adaptation of such
+technologies (and global coordination/adherence or adoptation of such
 technologies), this plugin I can't try to do everything right all at
 once. Furthermore, ontologies can be very complex to anyone remotely
 non-linguistic educated, I must try and see and learn and experiment as
@@ -19,8 +15,8 @@ posses inside knowledge of web ontologies and care to share this with
 our community, we more than welcome this.
 
 This is also the main motivation behind the choice for a literate
-CoffeeScript document over a regular (moderately) commented code file.
-It will allow for better backtracking of past decisions and rationale
+coffeescript document over a regular (moderately) commented code file.
+It will allow for better backtracking of past decissions and rationale
 so we may decide otherwise in a later stage.
 
 ## Convention and notation in this document
@@ -66,7 +62,6 @@ support tool added which I will leave for now.
         {TaskGroup} = require('taskgroup')
 
 ```
-
 So, we define our plugin as a derived class from the super-type (or base
 class) conveniently named `BasePlugin`. Also, we name our plugin
 according to docpad conventional standard by the same name as this file
@@ -74,7 +69,7 @@ starts `NAME.plugin.coffee` and the `docpad-plugin-NAME` directory. This
 is required for discovery of new plugins. The class name may be anything
 you desire, except of course `BasePlugin` but that goes without saying.
 
-``` coffeescript
+``` coffee-script
 
         class SemanticPlugin extends BasePlugin
 
@@ -101,7 +96,7 @@ order to prevent any collisions we can define and use these so called
 such as `http://schema.org/CreativeWork` or something along that line to
 `s:CreativeWork`.
 
-> I have no clue whatsoever the exact difference is between
+> I have no clue whatsever the exact difference is between
 `xmlns` inside the `HEAD` element as opposed to `BODY` or any other but
 they might be just that it limits the scope and nothing else. Thus
 `head` seems the most 'complete' in coverage but might trigger side-
@@ -121,28 +116,27 @@ Either way, we may just support the most commonly found namespaces for
 ontologies that a lot of web sites around the globe are using currently
 and will very likely see much increased usage statistics later this
 decade. The reason for this assumption is the trend towards increased
-relevance of these semantic tags by the major [search engines][seo30]
+relevance of these semantic tags by the major [search-engine][seo30]
 vendors in this world.
 
 ``` coffeescript
 
-                vocabularies: {'xmlns:s'     : 'http://schema.org/'
-                             , 'xmlns:gr'    : 'http://purl.org/goodrelations/v1#'
-                             , 'xmlns:rdfs'  : 'http://www.w3.org/2000/01/rdf-schema#'
-                             , 'xmlns:vcard' : 'http://www.w3.org/2006/vcard/ns#'
-                             , 'xmlns:foaf'  : 'http://xmlns.com/foaf/0.1/'
-                             , 'xmlns:xsd'   : 'http://www.w3.org/2001/XMLSchema#'
-                             , 'xmlns:v'     : 'http://rdf.data-vocabulary.org/#'
-                             , 'xmlns:pto'   : 'http://www.productontology.org/id/'
-                             , 'xmlns:wn'    : 'http://xmlns.com/wordnet/1.6/'
-                         }
+                vocabulaire: {'xmlns:s'     : 'http://schema.org/'
+                            , 'xmlns:gr'    : 'http://purl.org/goodrelations/v1#'
+                            , 'xmlns:rdfs'  : 'http://www.w3.org/2000/01/rdf-schema#'
+                            , 'xmlns:vcard' : 'http://www.w3.org/2006/vcard/ns#'
+                            , 'xmlns:foaf'  : 'http://xmlns.com/foaf/0.1/'
+                            , 'xmlns:xsd'   : 'http://www.w3.org/2001/XMLSchema#'
+                            , 'xmlns:v'     : 'http://rdf.data-vocabulary.org/#'
+                            , 'xmlns:pto'   : 'http://www.productontology.org/id/'
+                            , 'xmlns:wn'    : 'http://xmlns.com/wordnet/1.6/'
+                        }
 
 ```
 
 The above defined hash may be used, inside a **Coffeecup** body tag **as is**.
-It may allow for mixing in head/body like structures.
 
-> I do need to look at polyglot support for other languages in Docpad
+> I do need to look at polyglot support for other langauges in docpad
 > but don't have the test environment for this setup and not made up my
 > mind either. This is something we can add later anyway.
 
